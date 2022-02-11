@@ -11,11 +11,25 @@
     self.Board.prototype = {
         get elements(){
             var elements = this.bars;
-            elements.push(this.ball);
+            //elements.push(this.ball);
             return elements;
         }
     }
 })();
+(function(){
+    self.Ball = function(x,y,radius,board){
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.speed_y = 0;
+        this.speed_x = 3;
+        this.board = board;
+        
+        board.ball = this;
+        this.kind = "circle";
+    }
+})();
+
 
 (function(){
     self.Bar = function(x,y,width,height,board){
@@ -53,44 +67,65 @@
     }
 
     self.BoardView.prototype = {
+        clean: function(){
+            this.ctx.clearRect(0,0,this.board.width,this.board.height);
+        },
         draw: function(){
             for(var i = this.board.elements.length -1; i >= 0; i--){
                 var el = this.board.elements[i];
 
                 draw(this.ctx, el);
             }
+        },
+        play: function(){
+            board_view.clean();
+            board_view.draw();
         }
     }
 
     function draw(ctx, element){
-        if(element !== null && element.hasOwnProperty("kind")){
-            switch(element.kind){
-                case "rectangle":
-                    ctx.fillRect(element.x, element.y,element.width,element.height);
-                    break;
-            }
+        switch(element.kind){
+            case "rectangle":
+                ctx.fillRect(element.x, element.y,element.width,element.height);
+                break;
+            case "circle":
+                ctx.beginPath();
+                ctx.arc(element.x,element.y,radius,0,7);
+                ctx.fill();
+                ctx.closePath();
+                break;
         }
+        
         
     }
 })();
 
 var board = new Board(800,400);
 var bar = new Bar(20,100,40,100,board);
-var bar = new Bar(735,100,40,100,board);
+var bar_2 = new Bar(735,100,40,100,board);
 var canvas = document.getElementById('canvas');
 var board_view = new BoardView(canvas, board);
+var ball = new Ball(350, 100, 10, board);
 
 document.addEventListener("Keydown", function(ev){
-    if(ev.keyCode == 38){
+    ev.preventDefault();
+    if(ev.key == 'ArrowUp'){
         bar.up();
     }
-    else if (ev.keyCode == 40){
+    else if (ev.key == 'ArrowDown'){
         bar.down();
+    }else if (ev.key === 'W'){
+        bar_2.up();
+    }else if (ev.key === 'S'){
+        bar_2.down();
     }
+
+
 });
 
-window.addEventListener("load", main);
+window.requestAnimationFrame(controller);
 
-function main(){
-    board_view.draw();
+function controller(){
+    board_view.play();
+    window.requestAnimationFrame(controller);
 }
