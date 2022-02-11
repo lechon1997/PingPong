@@ -10,8 +10,8 @@
 
     self.Board.prototype = {
         get elements(){
-            var elements = this.bars;
-            //elements.push(this.ball);
+            var elements = this.bars.map(function(bar){return bar;});
+            elements.push(this.ball);
             return elements;
         }
     }
@@ -24,9 +24,18 @@
         this.speed_y = 0;
         this.speed_x = 3;
         this.board = board;
-        
+        this.direction = 1;
+
         board.ball = this;
         this.kind = "circle";
+
+    }
+
+    self.Ball.prototype = {
+        move: function(){
+            this.x += (this.speed_x * this.direction);
+            this.y += (this.speed_y);
+        }
     }
 })();
 
@@ -78,8 +87,12 @@
             }
         },
         play: function(){
-            board_view.clean();
-            board_view.draw();
+            if(this.board.playing){
+                board_view.clean();
+                board_view.draw();
+                this.board.ball.move();
+            }
+            
         }
     }
 
@@ -90,7 +103,7 @@
                 break;
             case "circle":
                 ctx.beginPath();
-                ctx.arc(element.x,element.y,radius,0,7);
+                ctx.arc(element.x,element.y,element.radius,0,7);
                 ctx.fill();
                 ctx.closePath();
                 break;
@@ -107,22 +120,15 @@ var canvas = document.getElementById('canvas');
 var board_view = new BoardView(canvas, board);
 var ball = new Ball(350, 100, 10, board);
 
-document.addEventListener("Keydown", function(ev){
-    ev.preventDefault();
-    if(ev.key == 'ArrowUp'){
-        bar.up();
-    }
-    else if (ev.key == 'ArrowDown'){
-        bar.down();
-    }else if (ev.key === 'W'){
-        bar_2.up();
-    }else if (ev.key === 'S'){
-        bar_2.down();
-    }
-
-
+document.addEventListener('keydown', function (ev) {
+	if (ev.key === 'ArrowUp') bar.up();
+	if (ev.key === 'ArrowDown') bar.down();
+	if (ev.key === 'W' || ev.key === 'w') bar_2.up(); //W
+	if (ev.key === 'S' || ev.key === 's') bar_2.down(); //S
+	if (ev.key === ' ') board.playing = !board.playing; // pausa
 });
 
+board_view.draw();
 window.requestAnimationFrame(controller);
 
 function controller(){
